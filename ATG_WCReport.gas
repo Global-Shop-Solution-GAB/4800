@@ -1,0 +1,101 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+V.Local.customer.Declare(String)
+V.Local.wc.Declare(String)
+V.Local.query.Declare(String)
+V.Local.job.Declare(String)
+V.Local.suffix.Declare(String)
+'set customer and wc from passed variables once I have the hooks
+F.Intrinsic.Debug.Stop
+V.Local.customer.Set(V.Passed.09003)
+V.Local.wc.Set(V.Passed.09004)
+V.Local.job.Set(V.Passed.09000)
+V.Local.suffix.Set(V.Passed.09001)
+
+F.Intrinsic.Control.If(V.Local.customer.RTrim,<>,"")
+	F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	F.Intrinsic.String.Concat("SELECT * FROM ATG_WC_BI_PRINT WHERE PRINTED = 'Y' AND CUSTOMER = '",V.Local.customer,"' AND WORKCENTER ='",V.Local.wc,"' AND JOB = '",V.Local.job,"' AND SUFFIX = '",V.Local.suffix,"'",V.Local.query)
+	F.Odbc.Connection!Conx.Openrecordsetrw("rstC",Variable.Local.query)
+	F.Intrinsic.Control.If(V.Odbc.Conx!RstC.Eof,=,True)
+		
+		F.Intrinsic.String.Concat("SELECT * FROM ATG_GUI_WC_BI WHERE CUSTOMER = '",V.Local.customer,"' AND WORKCENTER = '",V.Local.wc,"'",V.Local.query)
+		F.Odbc.Connection!Conx.Openrecordsetro("rstX",Variable.Local.query)
+		F.Intrinsic.Control.If(V.Odbc.Conx!Rstx.Eof,=,False)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID1)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID2)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID3)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID4)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID5)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID6)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID7)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID8)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID9)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID10)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID11)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID12)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID13)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID14)
+			F.Intrinsic.Control.CallSub("processbi","ID",V.Odbc.conx!rstX.FieldValRTrim!rpt_ID15)
+		F.Intrinsic.control.endif
+		F.ODBC.ConX!rstX.close
+		'Added Record
+		F.odbc.conx!rstC.AddNew
+		F.ODBC.Conx!rstC.Set!Customer(V.Local.customer)
+		F.ODBC.conx!rstC.Set!WORKCENTER(V.Local.wc)
+		F.ODBC.conx!rstC.Set!JOB(V.Local.job)
+		F.ODBC.conx!rstC.Set!SUFFIX(V.Local.suffix)
+		F.ODBC.conx!rstc.Set!PRINTED("Y")
+		F.ODBC.Conx!rstc.update
+	F.Intrinsic.Control.endif
+	
+	F.odbc.conx!rstc.close
+	F.ODBC.connection!Conx.Close
+F.Intrinsic.Control.endif
+
+Program.Sub.Main.End
+
+Program.Sub.processbi.Start
+V.Local.id.declare(String)
+V.Local.param.Declare(String)
+V.Local.param.Redim(0,4)
+V.Local.paramvalue.Declare(String)
+V.Local.paramvalue.Redim(0,4)
+V.Local.type.Declare(String)
+V.Local.query.Declare(String)
+
+V.Local.id.Set(V.Args.id)
+
+F.Intrinsic.Control.If(V.Local.id.RTrim,<>,"")
+	'Get report information for type
+	F.Intrinsic.String.Concat("select RPT_TYPE from BI_RPT WHERE  ACTIVE_FLAG = 'Y' AND RPT_ID = '",V.Local.id,"'",V.Local.query)
+	Function.Odbc.Connection!Conx.Openrecordsetro("rstY",Variable.Local.query)
+	V.Local.param(0).Set("COMPANY")
+	V.Local.param(1).Set("TERMINAL")
+	V.Local.param(2).Set("JOB")
+	V.Local.param(3).Set("SUFFIX")
+	V.Local.param(4).Set("WORKCENTER")
+	V.Local.paramvalue(0).Set(V.Caller.CompanyCode)
+	V.Local.paramvalue(1).Set(V.Caller.Terminal)
+	V.Local.paramvalue(2).Set(V.Passed.09000)
+	V.Local.paramvalue(3).Set(V.Passed.09001)
+	V.Local.paramvalue(4).Set(V.Passed.09004)
+	F.Intrinsic.Control.If(V.Odbc.conx!rstY.EOF,=,False)
+		F.Intrinsic.Control.If(V.Odbc.conx!rsty.FieldValRTrim!RPT_TYPE,=,"B")
+			F.Global.BI.PrintBartenderLabel(V.Local.id,0,V.Local.param,V.Local.paramvalue,True)
+		F.Intrinsic.Control.elseIf(V.Odbc.conx!rstY.FieldvalRtrim!rpt_type,<>,"B")
+			F.Global.BI.PrintReport(V.Local.id,0,V.Local.param,V.Local.paramvalue,True)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Endif
+	F.odbc.conx!rstY.close
+
+F.Intrinsic.Control.Endif
+
+Program.Sub.processbi.End
+
+
